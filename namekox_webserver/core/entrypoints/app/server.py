@@ -12,6 +12,7 @@ from werkzeug import Request
 from eventlet import wsgi, wrap_ssl
 from werkzeug.routing import Rule, Map
 from namekox_core.core.service.entrypoint import EntrypointProvider
+from namekox_core.core.service.extension import SharedExtension, ControlExtension
 from namekox_webserver.constants import WEBSERVER_CONFIG_KEY, DEFAULT_WEBSERVER_HOST, DEFAULT_WEBSERVER_PORT
 
 
@@ -32,7 +33,7 @@ class WsgiApp(object):
         return response(environ, start_response)
 
 
-class WebServer(EntrypointProvider):
+class WebServer(SharedExtension, ControlExtension, EntrypointProvider):
     SSL_ARGS = [
         'keyfile', 'certfile', 'server_side', 'cert_reqs',
         'ssl_version', 'ca_certs',
@@ -52,10 +53,6 @@ class WebServer(EntrypointProvider):
         self.started = False
         super(WebServer, self).__init__(*args, **kwargs)
 
-    @property
-    def _key(self):
-        return self.__class__.__name__
-    
     def setup(self):
         if self.host is not None and self.port is not None and self.sslargs is not None and self.srvargs is not None:
             return
@@ -65,14 +62,6 @@ class WebServer(EntrypointProvider):
         self.sslargs = {k: config.pop(k) for k in config if k in self.SSL_ARGS}
         self.sslargs and self.sslargs.update({'server_side': True})
         self.srvargs = config
-        self.srvargs and self.srvargs.update({'debug': True})
-
-    def bind(self, container, name):
-        ins = container.shared_providers.get(self._key, None)
-        if ins is None:
-            ins = super(WebServer, self).bind(container, name)
-            container.shared_providers[self._key] = ins
-        return ins
 
     def start(self):
         if not self.started:
@@ -107,8 +96,10 @@ class WebServer(EntrypointProvider):
 
     def gen_urls_map(self):
         url_map = Map()
-        for entrypoint in self.entrypoints:
-            rule = Rule(entrypoint.rule, methods=entrypoint.methods, endpoint=entrypoint)
+        for extension in self.extensions:
+            rule = getattr(extension, 'url_rule', None)
+            if not isinstance(rule, Rule):
+                continue
             url_map.add(rule)
         return url_map
 

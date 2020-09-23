@@ -10,6 +10,7 @@ import json
 
 
 from eventlet.event import Event
+from werkzeug.routing import Rule
 from werkzeug.wrappers import Response
 from namekox_core.exceptions import RemoteError
 from namekox_core.exceptions import gen_exc_to_data
@@ -29,12 +30,16 @@ class BaseServerHandler(Entrypoint):
         self.methods = methods
         super(BaseServerHandler, self).__init__(**kwargs)
 
+    @property
+    def url_rule(self):
+        return Rule(self.rule, methods=self.methods, endpoint=self)
+
     def setup(self):
-        self.server.register_entrypoint(self)
+        self.server.register_extension(self)
 
     def stop(self):
-        self.server.unregister_entrypoint(self)
-        self.server.wait_entrypoints_stop()
+        self.server.unregister_extension(self)
+        self.server.wait_extension_stop()
 
     def handle_request(self, request):
         context, result, exc_info = None, None, None
