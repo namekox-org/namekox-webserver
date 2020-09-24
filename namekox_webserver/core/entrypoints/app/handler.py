@@ -22,13 +22,13 @@ from namekox_core.core.service.entrypoint import Entrypoint
 from .server import WebServer
 
 
-class BaseServerHandler(Entrypoint):
+class BaseWebServerHandler(Entrypoint):
     server = WebServer()
 
     def __init__(self, rule, methods=('GET',), **kwargs):
         self.rule = rule
         self.methods = methods
-        super(BaseServerHandler, self).__init__(**kwargs)
+        super(BaseWebServerHandler, self).__init__(**kwargs)
 
     @property
     def url_rule(self):
@@ -70,7 +70,7 @@ class BaseServerHandler(Entrypoint):
         raise NotImplementedError
 
 
-class WebServerHandler(BaseServerHandler):
+class WebServerHandler(BaseWebServerHandler):
     def handle_request(self, request):
         context, result, exc_info = super(WebServerHandler, self).handle_request(request)
         return (
@@ -105,7 +105,7 @@ class WebServerHandler(BaseServerHandler):
         return Response(payload, status=status, headers=headers)
 
 
-class ApiServerHandler(BaseServerHandler):
+class ApiServerHandler(BaseWebServerHandler):
     def handle_request(self, request):
         context, result, exc_info = super(ApiServerHandler, self).handle_request(request)
         return (

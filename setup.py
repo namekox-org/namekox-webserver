@@ -21,7 +21,7 @@ setup(
     author='forcemain',
     url='https://forcemain.github.io/',
     packages=find_packages(exclude=['test', 'test.*']),
-    install_requires=["namekox-core>=1.0.0"],
+    install_requires=["namekox-core>=1.0.0", "werkzeug>=1.0.1"],
     zip_safe=True,
     license='Apache License, Version 2.0',
     classifiers=[
