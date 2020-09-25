@@ -9,11 +9,16 @@ import eventlet.wsgi
 
 
 from werkzeug import Request
+from logging import getLogger
 from eventlet import wsgi, wrap_ssl
 from werkzeug.routing import Rule, Map
+from namekox_core.core.loaders import import_dotpath_class
 from namekox_core.core.service.entrypoint import EntrypointProvider
 from namekox_core.core.service.extension import SharedExtension, ControlExtension
 from namekox_webserver.constants import WEBSERVER_CONFIG_KEY, DEFAULT_WEBSERVER_HOST, DEFAULT_WEBSERVER_PORT
+
+
+logger = getLogger(__name__)
 
 
 class WsgiApp(object):
@@ -51,12 +56,14 @@ class WebServer(SharedExtension, ControlExtension, EntrypointProvider):
         self.sslargs = None
         self.srvargs = None
         self.started = False
+        self.middlewares = None
         super(WebServer, self).__init__(*args, **kwargs)
 
     def setup(self):
         if self.host is not None and self.port is not None and self.sslargs is not None and self.srvargs is not None:
             return
         config = self.container.config.get(WEBSERVER_CONFIG_KEY, {}).copy()
+        self.middlewares = config.pop('middlewares', []) or []
         self.host = config.pop('host', DEFAULT_WEBSERVER_HOST) or DEFAULT_WEBSERVER_HOST
         self.port = config.pop('port', DEFAULT_WEBSERVER_PORT) or DEFAULT_WEBSERVER_PORT
         self.sslargs = {k: config.pop(k) for k in config if k in self.SSL_ARGS}
@@ -86,8 +93,24 @@ class WebServer(SharedExtension, ControlExtension, EntrypointProvider):
         connection = [addr, sock, wsgi.STATE_IDLE]
         self.ev_serv.process_request(connection)
 
+    def apply_addons(self, app):
+        for mid_cls_path in self.middlewares:
+            msg = 'load middleware objects from {} failed, '
+            err, mid_cls = import_dotpath_class(mid_cls_path)
+            log = False
+            if err is not None:
+                log = True
+                msg += err
+            log and logger.warn(msg.format(mid_cls_path))
+            if mid_cls is None:
+                continue
+            fun = mid_cls(app)
+            app = fun(self)
+        return app
+
     def get_wsgi_app(self):
-        return WsgiApp(self)
+        app = WsgiApp(self)
+        return self.apply_addons(app)
 
     def get_wsgi_srv(self):
         sock = self.ev_sock if not self.sslargs else wrap_ssl(self.ev_sock, **self.sslargs)
