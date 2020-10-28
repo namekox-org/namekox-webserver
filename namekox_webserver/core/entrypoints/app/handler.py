@@ -98,7 +98,7 @@ class WebServerHandler(BaseWebServerHandler):
             status = 400
         else:
             status = 500
-        headers = None
+        headers = {'Content-Type': 'text/html'}
         exc_data = gen_exc_to_data(exc_value)
         payload = '''
         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
