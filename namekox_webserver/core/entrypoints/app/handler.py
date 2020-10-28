@@ -101,7 +101,7 @@ class WebServerHandler(BaseWebServerHandler):
         headers = None
         exc_data = gen_exc_to_data(exc_value)
         payload = os.linesep.join(['{exc_type}', '{exc_mesg}'])
-        payload = payload.join(**exc_data)
+        payload = payload.format(**exc_data)
         return Response(payload, status=status, headers=headers)
 
 
