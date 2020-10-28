@@ -100,8 +100,12 @@ class WebServerHandler(BaseWebServerHandler):
             status = 500
         headers = None
         exc_data = gen_exc_to_data(exc_value)
-        payload = os.linesep.join(['{exc_type}', '{exc_mesg}'])
-        payload = payload.format(**exc_data)
+        payload = '''
+        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+        <title>{status} {exc_type}</title>
+        <h1>{exc_type}</h1>
+        <p>{exc_mesg}.</p>
+        '''.format(status=status, **exc_data)
         return Response(payload, status=status, headers=headers)
 
 
