@@ -125,8 +125,3 @@ class WebServer(SharedExtension, ControlExtension, EntrypointProvider):
                 continue
             url_map.add(rule)
         return url_map
-
-    @staticmethod
-    def get_context_from_header(request):
-        # TODO: headers to context
-        return {}
