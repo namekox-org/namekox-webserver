@@ -3,7 +3,6 @@
 # author: forcemain@163.com
 
 
-import os
 import sys
 import six
 import json
@@ -17,6 +16,7 @@ from namekox_core.exceptions import gen_exc_to_data
 from namekox_webserver.exceptions import BadRequest
 from namekox_core.core.friendly import as_wraps_partial
 from namekox_core.core.service.entrypoint import Entrypoint
+from namekox_webserver.core.messaging import get_message_headers
 
 
 from .server import WebServer
@@ -45,7 +45,7 @@ class BaseWebServerHandler(Entrypoint):
         context, result, exc_info = None, None, None
         try:
             request.shallow = False
-            ctxdata = self.server.get_context_from_header(request)
+            ctxdata = get_message_headers(request)
             args, kwargs = (request,), request.path_values
             event = Event()
             res_handler = as_wraps_partial(self.res_handler, event)
