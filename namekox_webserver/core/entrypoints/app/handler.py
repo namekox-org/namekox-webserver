@@ -11,7 +11,6 @@ import json
 from eventlet.event import Event
 from werkzeug.routing import Rule
 from werkzeug.wrappers import Response
-from namekox_core.exceptions import RemoteError
 from namekox_core.exceptions import gen_exc_to_data
 from namekox_webserver.exceptions import BadRequest
 from namekox_core.core.friendly import as_wraps_partial
@@ -131,21 +130,12 @@ class ApiServerHandler(BaseWebServerHandler):
     
     def handle_exception(self, request, context, exc_info):
         exc_type, exc_value, exc_trace = exc_info
-        if isinstance(exc_value, RemoteError):
-            exc_error = six.text_type(exc_value)
-        else:
-            exc_name = exc_type.__name__
-            exc_error = '{0} {1}'.format(exc_name, six.text_type(exc_value))
-        exc_value = type('ServerError', (Exception,), {})(exc_error)
         headers = {'Content-Type': 'application/json'}
-        payload = six.text_type(exc_value)
-        sub_err, err_msg = payload.split(' ', 1)
-        sub_err = sub_err.strip()
-        err_msg = err_msg.strip()
         call_id = context.call_id.split('.')[-1]
+        exc_name = exc_type.__name__
         payload = {
-            'code': 'ServerError:{0}'.format(sub_err),
-            'errs': err_msg,
+            'code': 'ServerError:{0}'.format(exc_name),
+            'errs': six.text_type(exc_value),
             'data': None,
             'call_id': call_id,
         }
