@@ -104,8 +104,7 @@ class WebServer(SharedExtension, ControlExtension, EntrypointProvider):
             log and logger.warn(msg.format(mid_cls_path))
             if mid_cls is None:
                 continue
-            fun = mid_cls(app)
-            app = fun(self)
+            app = mid_cls(app)
         return app
 
     def get_wsgi_app(self):
