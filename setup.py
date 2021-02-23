@@ -1,7 +1,8 @@
 #! -*- coding: utf-8 -*-
-
+#
 # author: forcemain@163.com
 
+from __future__ import unicode_literals
 
 import os
 
@@ -15,7 +16,7 @@ readme = open(os.path.join(curdir, 'READIT.md'), 'rb', 'utf-8').read()
 
 setup(
     name='namekox-webserver',
-    version='0.0.7',
+    version='0.0.8',
     description='namekox webserver',
     long_description_content_type='text/markdown',
     long_description=readme,

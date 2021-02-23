@@ -9,6 +9,7 @@ pip install -U namekox-webserver
 #! -*- coding: utf-8 -*-
 
 # author: forcemain@163.com
+from __future__ import unicode_literals
 
 
 from namekox_webserver.core.entrypoints.app import app
